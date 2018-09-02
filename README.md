@@ -2,6 +2,11 @@
 
 This is a remake version of [Milo Yip's json-tutorial](https://github.com/miloyip/json-tutorial), written in C#, unit tested by [xUnit](https://xunit.github.io/).
 
+## Requirements
+
+* [.NET Core SDK](https://dotnet.github.io/)
+* Internet Connection
+
 ## Build
 
 ```batch
@@ -26,7 +31,7 @@ dotnet sln Leptjson.sln add ./Tutorial01/Source/Source.csproj ./Tutorial01/UnitT
 
 2..8 | % {
     md ./Tutorial0$_; # If destination folder doesn't exists, PS will copy the first folder's content and then copy other folders themselves.
-    Get-ChildItem ./Tutorial01 | Copy-Item -Destination "./Tutorial02" -Recurse;
+    Get-ChildItem ./Tutorial01 | Copy-Item -Destination "./Tutorial0$_" -Recurse;
     dotnet sln Leptjson.sln add ./Tutorial0$_/Source/Source.csproj ./Tutorial0$_/UnitTest/UnitTest.csproj;
 };
 ```
