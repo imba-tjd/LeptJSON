@@ -69,13 +69,13 @@ namespace Tutorial01.Leptjson
 
             return LeptParseResult.OK;
         }
-        LeptParseResult ParseLiteral(LeptContext context, string literal, LeptType type)
+        LeptParseResult ParseLiteral(LeptContext context, string literal, LeptType expectType)
         {
             if (!context.json.StartsWith(literal))
                 return LeptParseResult.InvalidValue;
 
             context.json = context.json.Substring(literal.Length);
-            Type = type;
+            Type = expectType;
 
             return LeptParseResult.OK;
         }

@@ -34,7 +34,7 @@ namespace Tutorial01.UnitTest
         public void TestNull()
         {
             Assert.Equal(LeptParseResult.OK, parser.Parse("null"));
-            Assert.Equal(LeptType.Null, parser.Type);
+            Assert.Equal(LeptType.Null, parser.Type); // This will always success because Type was set to Null even parsing failed.
         }
         [Fact]
         public void TestTrue()
