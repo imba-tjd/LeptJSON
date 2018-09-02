@@ -4,7 +4,7 @@ This is a remake version of [Milo Yip's json-tutorial](https://github.com/miloyi
 
 ## Build
 
-```
+```batch
 #dotnet restore
 dotnet test # [bug]This will test Source.
 ```
@@ -16,12 +16,17 @@ This part records my process of establishing folders. If you only want to build 
 ```powershell
 dotnet new sln --name LeptJSON;
 #dotnet new sln --name UnitTest;
-1..8 | % {
-    md ./Tutorial0$_/Source
-    md ./Tutorial0$_/UnitTest;
-    dotnet new classlib --output ./Tutorial0$_/Source;
-    dotnet new xunit --output ./Tutorial0$_/UnitTest;
-    dotnet add ./Tutorial0$_/UnitTest/UnitTest.csproj reference ./Tutorial0$_/Source/Source.csproj;
-    dotnet sln Leptjson add ./Tutorial0$_/Source/Source.csproj ./Tutorial0$_/UnitTest/UnitTest.csproj;
+
+md ./Tutorial01/Source;
+md ./Tutorial01/UnitTest;
+dotnet new classlib --output ./Tutorial01/Source;
+dotnet new xunit --output ./Tutorial01/UnitTest;
+dotnet add ./Tutorial01/UnitTest/UnitTest.csproj reference ./Tutorial01/Source/Source.csproj;
+dotnet sln Leptjson.sln add ./Tutorial01/Source/Source.csproj ./Tutorial01/UnitTest/UnitTest.csproj;
+
+2..8 | % {
+    md ./Tutorial0$_; # If destination folder doesn't exists, PS will copy the first folder's content and then copy other folders themselves.
+    Get-ChildItem ./Tutorial01 | Copy-Item -Destination "./Tutorial02" -Recurse;
+    dotnet sln Leptjson.sln add ./Tutorial0$_/Source/Source.csproj ./Tutorial0$_/UnitTest/UnitTest.csproj;
 };
 ```
