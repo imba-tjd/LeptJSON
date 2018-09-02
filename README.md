@@ -23,5 +23,5 @@ dotnet new sln --name LeptJSON;
     dotnet new xunit --output ./Tutorial0$_/UnitTest;
     dotnet add ./Tutorial0$_/UnitTest/UnitTest.csproj reference ./Tutorial0$_/Source/Source.csproj;
     dotnet sln Leptjson add ./Tutorial0$_/Source/Source.csproj ./Tutorial0$_/UnitTest/UnitTest.csproj;
-    };
+};
 ```
