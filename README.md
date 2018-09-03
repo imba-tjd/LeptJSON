@@ -5,7 +5,7 @@ This is a remake version of [Milo Yip's json-tutorial](https://github.com/miloyi
 ## Requirements
 
 * [.NET Core SDK](https://dotnet.github.io/)
-* Internet Connection
+* [Internet Connection](https://www.baidu.com/)
 
 ## Build
 
@@ -16,7 +16,7 @@ dotnet test # [bug]This will test Source.
 
 ## Process of Establishing Folders
 
-This part records my process of establishing folders. If you only want to build from source, no need to do this.
+~~This part records my process of establishing folders~~ actually I new them manually. If you only want to build from source, no need to do this.
 
 ```powershell
 dotnet new sln --name LeptJSON;
