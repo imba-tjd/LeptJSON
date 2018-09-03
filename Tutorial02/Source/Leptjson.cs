@@ -60,7 +60,7 @@ namespace LeptJSON
                 if (json[position] == '0' && (json[position + 1] == 'x' || json[position + 1] == 'X')) // jump across 0x and 0X
                     position += 2;
 
-                if (json[position] >= '1' || json[position] <= 9)
+                if (json[position] >= '1' && json[position] <= '9')
                 {
                     while (json[position] != '\0') // integer part
                         if (PositionIsDigit(position))
