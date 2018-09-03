@@ -1,8 +1,8 @@
 using System;
 using Xunit;
-using Tutorial01.Leptjson;
+using LeptJSON;
 
-namespace Tutorial01.UnitTest
+namespace LeptJSON.UnitTest
 {
     public class UnitTest
     {

@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
 using Xunit;
-using Tutorial02.Leptjson;
+using LeptJSON;
 
-namespace Tutorial01.UnitTest
+namespace LeptJSON.UnitTest
 {
     public class UnitTest
     {

@@ -1,6 +1,6 @@
 using System;
 
-namespace Tutorial02.Leptjson
+namespace LeptJSON
 {
     public enum LeptType
     {
