@@ -35,3 +35,7 @@ dotnet sln Leptjson.sln add ./Tutorial01/Source/Source.csproj ./Tutorial01/UnitT
     dotnet sln Leptjson.sln add ./Tutorial0$_/Source/Source.csproj ./Tutorial0$_/UnitTest/UnitTest.csproj;
 };
 ```
+
+## TODO
+
+* [ ] Use my own specific Exception.
