@@ -10,6 +10,7 @@ namespace Tutorial01.UnitTest
         Lept parser = new Lept();
 
         #region TestError
+
         void TestError(string errorJson, LeptParseResult errorResult)
         {
             parser.GetType().GetProperty("Type").SetValue(parser, LeptType.False);
@@ -22,9 +23,9 @@ namespace Tutorial01.UnitTest
         public void TestParseRootNotSingular(string json) => TestError(json, LeptParseResult.RootNotSingular);
 
         [Theory]
-        [InlineData("nul"), InlineData("?"), InlineData("1E"), InlineData("1~")]
+        [InlineData("nul"), InlineData("?")]
+        [InlineData("1E"), InlineData("1~")] // This test is misled.
         public void TestParseInvalidValue(string json) => TestError(json, LeptParseResult.InvalidValue);
-
 
         [Theory]
         [InlineData(""), InlineData(" ")]
