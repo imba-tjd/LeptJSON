@@ -20,12 +20,11 @@ namespace LeptJSON.UnitTest
 
         [Theory]
         [InlineData("null x"), InlineData("0123"), InlineData("0x0"), InlineData("0x123")]
-        [InlineData("123 123")]
+        [InlineData("123 123"), InlineData("-"), InlineData("1E")]
         public void TestParseRootNotSingular(string json) => TestError(json, LeptParseResult.RootNotSingular);
 
         [Theory]
         [InlineData("nul"), InlineData("?")]
-        // [InlineData("1E"), InlineData("1~")] // This test is misled.
         public void TestParseInvalidValue(string json) => TestError(json, LeptParseResult.InvalidValue);
 
         [Theory]

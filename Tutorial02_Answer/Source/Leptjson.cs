@@ -26,21 +26,34 @@ namespace LeptJSON
         class LeptContext
         {
             internal string json;
+            internal char this[int index] => json[index];
+            internal void ParseWhiteSpace() => json = json.TrimStart();
 
-            internal void ParseWhiteSpace()
+            internal LeptContext(string json) => this.json = json + '\0';
+
+            internal bool ParseLiteral(string literal)
             {
-                json = json.TrimStart();
+                if (!json.StartsWith(literal))
+                    return false;
+
+                json = json.Substring(literal.Length);
+                return true;
             }
+
 
             #region Checking Number
 
+            int validNumberEnd = 0;
             bool PositionIsDigit(int position) => json[position] >= '0' && json[position] <= '9';
-            int JumpToValidNumberEndRegex() => System.Text.RegularExpressions.Regex.Match(json, @"^-?(0|[1-9]\d*)(\.\d+)?([eE][+-]?\d+)?").Length; // match 50/51
-            internal int JumpToValidNumberEnd(bool useRegex = false)
+            internal int GetValidNumberEnd(bool useRegex = false) => validNumberEnd = useRegex == true ? GetValidNumberEndRegex() : GetValidNumberEndInternal();
+            int GetValidNumberEndRegex()
             {
-                if (useRegex == true)
-                    return JumpToValidNumberEndRegex();
+                int end = System.Text.RegularExpressions.Regex.Match(json, @"^-?(0|[1-9]\d*)(\.\d+)?([eE][+-]?\d+)?").Length;
+                return json[end] == '.' ? 0 : end; // 1. is invalid
+            }
 
+            int GetValidNumberEndInternal()
+            {
                 int position = 0;
 
                 if (json[position] == '-') // jump across optional negative sign
@@ -55,13 +68,13 @@ namespace LeptJSON
                 }
                 else if (json[position] == '0') // if integer part starts with 0, it should be a single 0
                     position++;
-                else return -1;
+                else return 0; // invalid value or none or **have negative sign but no digit**, so it must be 0, not position
 
                 if (json[position] == '.')
                 {
                     position++; // jump across decimal point
                     if (!PositionIsDigit(position)) // have decimal point but no digit
-                        return -1;
+                        return 0; // invalid value
                     else
                         while (PositionIsDigit(position)) // decimal part
                             position++;
@@ -70,20 +83,50 @@ namespace LeptJSON
                 if (json[position] == 'e' || json[position] == 'E')
                 {
                     position++; // jump across natural constant symbol
+
                     if (json[position] == '+' || json[position] == '-') // jump across optional positive and negative sign
                         position++;
 
-                    if (!PositionIsDigit(position)) // have natural logarithmic symbol symbol but no digit
-                        return -1;
-                    else
-                        while (PositionIsDigit(position)) // exponent part
-                            position++;
+                    if (!PositionIsDigit(position)) // invalid caracter or have natural logarithmic symbol symbol but no digit
+                    {
+                        if (json[position - 1] == '+' || json[position - 1] == '-') // look back
+                            return position - 2; // root not singular.
+                        else
+                            return position - 1;
+                    }
+
+                    // else
+                    while (PositionIsDigit(position)) // exponent part
+                        position++;
                 }
 
                 return position;
             }
 
+            internal void JumpToValidNumberEnd()
+            {
+                if (validNumberEnd == 0)
+                    GetValidNumberEndInternal();
+                if (validNumberEnd == 0)
+                    return;
+
+                json = json.Substring(validNumberEnd);
+                validNumberEnd = 0;
+            }
+            internal string GetValidNumberString()
+            {
+                if (validNumberEnd == 0)
+                    GetValidNumberEndInternal();
+                if (validNumberEnd == 0)
+                    return string.Empty;
+
+                string num = json.Substring(0, validNumberEnd);
+                // validNumberEnd = 0;
+                return num;
+            }
+
             #endregion
+
         }
 
         public LeptType Type { get; private set; }
@@ -100,8 +143,7 @@ namespace LeptJSON
 
         public LeptParseResult Parse(string json)
         {
-            LeptContext context = new LeptContext();
-            context.json = json + '\0'; // implement ExpectValue Feature
+            LeptContext context = new LeptContext(json);
             Type = LeptType.Null; // Type is set to Null when parsing fails
 
             context.ParseWhiteSpace();
@@ -109,7 +151,7 @@ namespace LeptJSON
             if (result == LeptParseResult.OK)
             {
                 context.ParseWhiteSpace();
-                if (context.json[0] != '\0')
+                if (context[0] != '\0')
                 {
                     result = LeptParseResult.RootNotSingular;
                     Type = LeptType.Null;
@@ -120,7 +162,7 @@ namespace LeptJSON
         }
         LeptParseResult ParseValue(LeptContext context)
         {
-            switch (context.json[0])
+            switch (context[0])
             {
                 case 'n': return ParseLiteral(context, "null", LeptType.Null);
                 case 't': return ParseLiteral(context, "true", LeptType.True);
@@ -131,27 +173,25 @@ namespace LeptJSON
         }
         LeptParseResult ParseLiteral(LeptContext context, string literal, LeptType expectedType)
         {
-            if (!context.json.StartsWith(literal))
+            if (!context.ParseLiteral(literal))
                 return LeptParseResult.InvalidValue;
 
-            context.json = context.json.Substring(literal.Length);
             Type = expectedType;
-
             return LeptParseResult.OK;
         }
         LeptParseResult ParseNumber(LeptContext context)
         {
-            int validNumberEnd = context.JumpToValidNumberEnd(false);
-            if (validNumberEnd == 0 || validNumberEnd == -1)
-                return LeptParseResult.InvalidValue;
+            int validNumberEnd = context.GetValidNumberEnd(); // parse till invalid value
+            if (validNumberEnd == 0)
+                return context[0] == '-' ? LeptParseResult.RootNotSingular : LeptParseResult.InvalidValue;
 
-            try { number = double.Parse(context.json.Substring(0, validNumberEnd)); }
+            try { number = double.Parse(context.GetValidNumberString()); }
             catch (OverflowException) { return LeptParseResult.NumberTooBig; }
 
             Type = LeptType.Number;
-            context.json = context.json.Substring(validNumberEnd);
+            context.JumpToValidNumberEnd();
 
-            return LeptParseResult.OK;
+            return LeptParseResult.OK; // can still be root not singular in the end
         }
     }
 }
