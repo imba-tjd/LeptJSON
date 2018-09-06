@@ -4,7 +4,7 @@
 
 This is a remake version of [Milo Yip's json-tutorial](https://github.com/miloyip/json-tutorial), written in C#, unit tested by [xUnit](https://xunit.github.io/).
 
-## Requirements
+## Prerequisites
 
 * [.NET Core SDK](https://dotnet.github.io/)
 * [Internet Connection](https://www.baidu.com/)
