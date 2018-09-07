@@ -21,7 +21,9 @@ namespace LeptJSON
         NumberTooBig,
         MissQuotationMark,
         InvalidStringEscape,
-        InvalidStringChar
+        InvalidStringChar,
+        InvalidUnicodeHex,
+        InvalidUnicodeSurrogate
     }
 
     public partial class Lept

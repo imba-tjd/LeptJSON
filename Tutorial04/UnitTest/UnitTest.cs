@@ -75,9 +75,9 @@ namespace LeptJSON.UnitTest
         {
             [Theory]
             [MemberData(nameof(TestNumberSource))]
-            public void TestNumber(double expected, string actual)
+            public void TestNumber(double expected, string json)
             {
-                Assert.Equal(LeptParseResult.OK, parser.Parse(actual));
+                Assert.Equal(LeptParseResult.OK, parser.Parse(json));
                 Assert.Equal(LeptType.Number, parser.Type);
                 Assert.Equal(expected, parser.Number);
             }
@@ -130,9 +130,9 @@ namespace LeptJSON.UnitTest
         {
             [Theory]
             [MemberData(nameof(TestStringSource))]
-            void TestString(string expected, string actual)
+            void TestString(string expected, string json)
             {
-                Assert.Equal(LeptParseResult.OK, parser.Parse(actual));
+                Assert.Equal(LeptParseResult.OK, parser.Parse(json));
                 Assert.Equal(LeptType.String, parser.Type);
                 Assert.Equal(expected, parser.String);
             }
@@ -143,6 +143,12 @@ namespace LeptJSON.UnitTest
                 yield return new object[] { "Hello", "\"Hello\"" };
                 yield return new object[] { "Hello\nWorld", "\"Hello\\nWorld\"" };
                 yield return new object[] { "\" \\ / \b \f \n \r \t", "\"\\\" \\\\ \\/ \\b \\f \\n \\r \\t\"" };
+                yield return new object[] { "Hello\0World", "\"Hello\\u0000World\"" };
+                yield return new object[] { "\x24", "\"\\u0024\"" }; // Dollar sign U+0024
+                yield return new object[] { "\xC2\xA2", "\"\\u00A2\"" }; // Cents sign U+00A2
+                yield return new object[] { "\xE2\x82\xAC", "\"\\u20AC\"" }; // Euro sign U+20AC
+                yield return new object[] { "\xF0\x9D\x84\x9E", "\"\\uD834\\uDD1E\"" }; // G clef sign U+1D11E
+                yield return new object[] { "\xF0\x9D\x84\x9E", "\"\\ud834\\udd1e\"" }; // G clef sign U+1D11E
             }
 
             [Theory]
@@ -163,6 +169,17 @@ namespace LeptJSON.UnitTest
             [Theory]
             [InlineData("\"\x01\""), InlineData("\"\x1F\"")]
             void TestInvalidStringChar(string json) => TestError(json, LeptParseResult.InvalidStringChar);
+
+            [Theory]
+            [InlineData("\"\\u\""), InlineData("\"\\u0\""), InlineData("\"\\u01\""), InlineData("\"\\u012\"")]
+            [InlineData("\"\\u/000\""), InlineData("\"\\uG000\""), InlineData("\"\\u0/00\""), InlineData("\"\\u0G00\"")]
+            [InlineData("\"\\u0/00\""), InlineData("\"\\u00G0\""), InlineData("\"\\u000/\""), InlineData("\"\\u000G\"")]
+            void TestInvalidUnicodeHex(string json) => TestError(json, LeptParseResult.InvalidUnicodeHex);
+
+            [Theory]
+            [InlineData("\"\\uD800\""), InlineData("\"\\uDBFF\""), InlineData("\"\\uD800\\\\\"")]
+            [InlineData("\"\\uD800\\uDBFF\""), InlineData("\"\\uD800\\uE000\"")]
+            void TestInvalidUnicodeSurrogate(string json) => TestError(json, LeptParseResult.InvalidUnicodeSurrogate);
         }
     }
 }
