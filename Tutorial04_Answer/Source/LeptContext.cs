@@ -133,8 +133,7 @@ namespace LeptJSON
                         case '\0': return LeptParseResult.MissQuotationMark;
                         case '\\':
                             {
-                                position++;
-                                switch (JSON[position])
+                                switch (JSON[++position])
                                 {
                                     case '\"': sb.Append('\"'); break;
                                     case '\\': sb.Append('\\'); break;
@@ -147,10 +146,11 @@ namespace LeptJSON
                                     case 'u':
                                         {
                                             LeptParseResult parseResult;
-                                            if ((parseResult = ParseHex(ref position, out uint codePoint)) != LeptParseResult.OK)
+                                            if ((parseResult = ParseCodePoint(ref position, out uint codePoint)) != LeptParseResult.OK)
                                                 return parseResult;
-                                            else if ((parseResult = EncodeUTF8(ref codePoint, out List<char> UTF8chars)) != LeptParseResult.OK)
-                                                return parseResult;
+                                            List<char> UTF8chars = EncodeUTF8(ref codePoint);
+                                            if (UTF8chars == null)
+                                                return LeptParseResult.InvalidUnicodeSurrogate;
                                             else
                                                 UTF8chars.ForEach(x => sb.Append(x));
                                             break;
@@ -172,66 +172,82 @@ namespace LeptJSON
                 }
             }
 
-            LeptParseResult ParseHex(ref int position, out uint codePoint)
+            LeptParseResult ParseCodePoint(ref int position, out uint codePoint)
             {
                 codePoint = 0;
                 if ((JSON[position++] != 'u'))
                     throw new Exception();
 
-                if (JSON.Length < position + 4 || uint.TryParse(JSON.Substring(position, 4), System.Globalization.NumberStyles.HexNumber, null, out uint H) == false) // not a hex number
+                uint? H;
+                if ((H = ParseHex(ref position)) == null) // not a hex number
                     return LeptParseResult.InvalidUnicodeHex;
-                position += 4;
+
 
                 if (!(H >= 0xD800 && H <= 0xDBFF)) // no need low surrogate
-                    codePoint = H;
+                    codePoint = H.Value;
                 else
                 {
-                    position++; // need to firstly jump across reverse solidus
-                    if ((JSON[position++] != 'u'))
+                    if (JSON[position] != '\\' || JSON[position + 1] != 'u')
                         return LeptParseResult.InvalidUnicodeSurrogate; // no low surrogate
-                    else if (JSON.Length < position + 4 || uint.TryParse(JSON.Substring(position, 4), System.Globalization.NumberStyles.HexNumber, null, out uint L) == false)
+                    position += 2;
+
+                    uint? L;
+                    if ((L = ParseHex(ref position)) == null)
                         return LeptParseResult.InvalidUnicodeHex;
                     else if (!(L >= 0xDC00 && L <= 0xDFFF))
                         return LeptParseResult.InvalidUnicodeSurrogate; // low surrogate out of range
                     else // if commented out, it would report "L doesn't exist in the context", because L may not be declared if the first condition is true
-                    {
-                        codePoint = 0x10000 + (H - 0xD800) * 0x400 + (L - 0xDC00);
-                        position += 4;
-                    }
+                        codePoint = 0x10000 + (H.Value - 0xD800) * 0x400 + (L.Value - 0xDC00);
                 }
 
                 position--; // correspond with other situation
                 return LeptParseResult.OK;
             }
 
-            LeptParseResult EncodeUTF8(ref uint codePoint, out List<char> UTF8chars)
+            uint? ParseHex(ref int position)
             {
-                UTF8chars = new List<char>();
+                uint hex = 0;
+                for (int i = 0; i < 4; i++)
+                {
+                    char ch = JSON[position + i];
+                    hex <<= 4;
+                    if (ch >= '0' && ch <= '9') hex |= ch - (uint)'0';
+                    else if (ch >= 'A' && ch <= 'F') hex |= ch - (uint)'A' + 10;
+                    else if (ch >= 'a' && ch <= 'f') hex |= ch - (uint)'a' + 10;
+                    else return null; // invalid hex number including spaces which ConvertTo.uint and uint.Parse don't fail
+                }
+                position += 4;
+                return hex;
+            }
 
-                if (codePoint >= 0x0000 && codePoint <= 0x007F)
-                    UTF8chars.Add(Convert.ToChar(codePoint));
-                else if (codePoint >= 0x0080 && codePoint <= 0x07FF)
+            List<char> EncodeUTF8(ref uint codePoint)
+            {
+                List<char> UTF8chars = new List<char>();
+
+                if (codePoint <= 0x007F)
+                    UTF8chars.Add((char)(codePoint));
+                else if (codePoint <= 0x07FF)
                 {
-                    UTF8chars.Add(Convert.ToChar(0xC0 | ((codePoint >> 6) & 0xFF)));
-                    UTF8chars.Add(Convert.ToChar(0x80 | (codePoint & 0x3F)));
+                    UTF8chars.Add((char)(0xC0 | ((codePoint >> 6) & 0xFF)));
+                    UTF8chars.Add((char)(0x80 | (codePoint & 0x3F)));
                 }
-                else if (codePoint >= 0x0800 && codePoint <= 0xFFFF)
+                else if (codePoint <= 0xFFFF)
                 {
-                    UTF8chars.Add(Convert.ToChar(0xE0 | ((codePoint >> 12) & 0xFF)));
-                    UTF8chars.Add(Convert.ToChar(0x80 | ((codePoint >> 6) & 0x3F)));
-                    UTF8chars.Add(Convert.ToChar(0x80 | (codePoint & 0x3F)));
+                    UTF8chars.Add((char)(0xE0 | ((codePoint >> 12) & 0xFF)));
+                    UTF8chars.Add((char)(0x80 | ((codePoint >> 6) & 0x3F)));
+                    UTF8chars.Add((char)(0x80 | (codePoint & 0x3F)));
                 }
-                else if (codePoint >= 0x10000 && codePoint <= 0x10FFFF)
+                else if (codePoint <= 0x10FFFF)
                 {
-                    UTF8chars.Add(Convert.ToChar(0xF0 | ((codePoint >> 18) & 0xFF)));
-                    UTF8chars.Add(Convert.ToChar(0x80 | ((codePoint >> 12) & 0x3F)));
-                    UTF8chars.Add(Convert.ToChar(0x80 | ((codePoint >> 6) & 0x3F)));
-                    UTF8chars.Add(Convert.ToChar(0x80 | (codePoint & 0x3F)));
+                    UTF8chars.Add((char)(0xF0 | ((codePoint >> 18) & 0xFF)));
+                    UTF8chars.Add((char)(0x80 | ((codePoint >> 12) & 0x3F)));
+                    UTF8chars.Add((char)(0x80 | ((codePoint >> 6) & 0x3F)));
+                    UTF8chars.Add((char)(0x80 | (codePoint & 0x3F)));
                 }
                 else
-                    return LeptParseResult.InvalidUnicodeSurrogate;
+                    return null;
 
-                return LeptParseResult.OK;
+                return UTF8chars;
             }
 
             #endregion
