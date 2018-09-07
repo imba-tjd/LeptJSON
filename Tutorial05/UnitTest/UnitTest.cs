@@ -7,8 +7,8 @@ namespace LeptJSON.UnitTest
 {
     public class TestBase
     {
-        protected static Lept parser = new Lept();
-        protected static void TestError(string errorJSON, LeptParseResult errorResult)
+        protected Lept parser = new Lept();
+        protected void TestError(string errorJSON, LeptParseResult errorResult)
         {
             parser.Boolean = false;
             Assert.Equal(errorResult, parser.Parse(errorJSON));
