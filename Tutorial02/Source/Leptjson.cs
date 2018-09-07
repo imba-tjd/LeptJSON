@@ -47,7 +47,7 @@ namespace LeptJSON
                         return false;
                 return true;
             }
-            [Obsolete("This method's effect is inconsistent with the real one. See miloyip/json-tutorial/issues/131")]
+            // [Obsolete("This method's effect is inconsistent with the real one. See miloyip/json-tutorial/issues/131")]
             internal bool CheckNumber(bool useRegex = false)
             {
                 if (useRegex == true)
