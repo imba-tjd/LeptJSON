@@ -4,6 +4,15 @@
 
 This is a remake version of [Milo Yip's json-tutorial](https://github.com/miloyip/json-tutorial), written in C#, unit tested by [xUnit](https://xunit.github.io/).
 
+## Features
+
+* Standard-compliant JSON parser and generator
+* Handwritten recursive descent parser
+* C# 7.0 or above
+* .NET Standard 2.0
+* Supports only UTF-8 JSON text
+* Supports only storing the JSON `number` type as `double`
+
 ## Prerequisites
 
 * [.NET Core SDK](https://dotnet.github.io/)
