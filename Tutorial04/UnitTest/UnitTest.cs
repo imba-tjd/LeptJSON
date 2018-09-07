@@ -173,7 +173,7 @@ namespace LeptJSON.UnitTest
             [Theory]
             [InlineData("\"\\u\""), InlineData("\"\\u0\""), InlineData("\"\\u01\""), InlineData("\"\\u012\"")]
             [InlineData("\"\\u/000\""), InlineData("\"\\uG000\""), InlineData("\"\\u0/00\""), InlineData("\"\\u0G00\"")]
-            [InlineData("\"\\u0/00\""), InlineData("\"\\u00G0\""), InlineData("\"\\u000/\""), InlineData("\"\\u000G\"")]
+            [InlineData("\"\\u00/0\""), InlineData("\"\\u00G0\""), InlineData("\"\\u000/\""), InlineData("\"\\u000G\"")]
             void TestInvalidUnicodeHex(string json) => TestError(json, LeptParseResult.InvalidUnicodeHex);
 
             [Theory]
