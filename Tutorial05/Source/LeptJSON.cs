@@ -23,21 +23,25 @@ namespace LeptJSON
         InvalidStringEscape,
         InvalidStringChar,
         InvalidUnicodeHex,
-        InvalidUnicodeSurrogate
+        InvalidUnicodeSurrogate,
+        MissCommaOrSquareBracket
     }
 
     public partial class Lept
     {
-        struct LeptValue
+        class LeptValue
         {
-            internal LeptType type;
+            internal LeptType type = LeptType.Null;
             internal double number;
             internal string _string;
             internal bool boolean;
+            internal Lept[] array = new Lept[0];
         }
 
         LeptContext context;
-        LeptValue _value;
+        LeptValue _value = new LeptValue();
+        Lept(LeptContext context) => this.context = context;
+        public Lept() { }
 
         #region Value
 
@@ -87,6 +91,21 @@ namespace LeptJSON
                 _value.boolean = value;
             }
         }
+        public Lept[] Array
+        {
+            get
+            {
+                if (_value.type != LeptType.Array)
+                    throw new Exception("LeptType isn't String.");
+                return _value.array;
+            }
+            set
+            {
+                _value = new LeptValue();
+                _value.type = LeptType.Array;
+                _value.array = value;
+            }
+        }
 
         #endregion
 
@@ -111,7 +130,7 @@ namespace LeptJSON
 
             return result;
         }
-        LeptParseResult ParseValue()
+        internal LeptParseResult ParseValue()
         {
             switch (context[0])
             {
@@ -119,6 +138,7 @@ namespace LeptJSON
                 case 't': return ParseLiteral("true", LeptType.True);
                 case 'f': return ParseLiteral("false", LeptType.False);
                 case '\"': return ParseString();
+                case '[': return ParseArray();
                 case '\0': return LeptParseResult.ExpectValue;
                 default: return ParseNumber(); // include invalidValue
             }
@@ -140,7 +160,7 @@ namespace LeptJSON
             try { Number = double.Parse(context.GetValidNumberString()); }
             catch (OverflowException) { return LeptParseResult.NumberTooBig; }
 
-            Type = LeptType.Number;
+            // Type = LeptType.Number;
             context.JumpToValidNumberEnd();
 
             return LeptParseResult.OK; // can still be root not singular in the end
@@ -150,6 +170,17 @@ namespace LeptJSON
             LeptParseResult parseResult = context.ParseString(out string result);
             if (parseResult == LeptParseResult.OK)
                 String = result;
+
+            return parseResult;
+        }
+        LeptParseResult ParseArray()
+        {
+            LeptParseResult parseResult = context.ParseArray(out Lept[] array);
+
+            if (parseResult == LeptParseResult.OK)
+                Array = array;
+
+            // Type = LeptType.Array;
             return parseResult;
         }
 

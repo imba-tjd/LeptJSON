@@ -182,4 +182,46 @@ namespace LeptJSON.UnitTest
         [InlineData("\"\\uD800\\uDBFF\""), InlineData("\"\\uD800\\uE000\"")]
         void TestInvalidUnicodeSurrogate(string json) => TestError(json, LeptParseResult.InvalidUnicodeSurrogate);
     }
+
+    public class TestArrays : TestBase
+    {
+        [Fact]
+        void TestArray1()
+        {
+            Assert.Equal(LeptParseResult.OK, parser.Parse("[ null , false , true , 123 , \"abc\" ]"));
+            Assert.Equal(LeptType.Array, parser.Type);
+            Assert.Equal(5, parser.Array.Length);
+            Assert.Equal(LeptType.Null, parser.Array[0].Type);
+            Assert.Equal(LeptType.False, parser.Array[1].Type);
+            Assert.Equal(LeptType.True, parser.Array[2].Type);
+            Assert.Equal(LeptType.Number, parser.Array[3].Type);
+            Assert.Equal(LeptType.String, parser.Array[4].Type);
+            Assert.Equal(123.0, parser.Array[3].Number);
+            Assert.Equal("abc", parser.Array[4].String);
+            Assert.Equal(3, parser.Array[4].String.Length);
+        }
+        [Fact]
+        void TestArray2()
+        {
+            Assert.Equal(LeptParseResult.OK, parser.Parse("[ [ ] , [ 0 ] , [ 0 , 1 ] , [ 0 , 1 , 2 ] ]"));
+            Assert.Equal(LeptType.Array, parser.Type);
+            Assert.Equal(4, parser.Array.Length);
+            for (int i = 0; i < 4; i++)
+            {
+                Lept value1 = parser.Array[i];
+                Assert.Equal(LeptType.Array, value1.Type);
+                Assert.Equal(i, value1.Array.Length);
+                for (int j = 0; j < i; j++)
+                {
+                    Lept value2 = value1.Array[j];
+                    Assert.Equal(LeptType.Number, value2.Type);
+                    Assert.Equal((double)j, value2.Number);
+                }
+            }
+        }
+
+        [Theory]
+        [InlineData("[1"), InlineData("[1}"), InlineData("[1 2"), InlineData("[[]")]
+        void TestMissCommaOrSquareBracket(string json) => TestError(json, LeptParseResult.MissCommaOrSquareBracket);
+    }
 }

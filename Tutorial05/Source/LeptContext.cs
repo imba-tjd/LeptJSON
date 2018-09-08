@@ -23,7 +23,6 @@ namespace LeptJSON
                 return true;
             }
 
-
             #region Parsing Number
 
             int validNumberEnd = 0;
@@ -248,6 +247,50 @@ namespace LeptJSON
                     return null;
 
                 return UTF8chars;
+            }
+
+            #endregion
+
+            #region Parsing Array
+
+            internal LeptParseResult ParseArray(out Lept[] array)
+            {
+                if (JSON[0] != '[')
+                    throw new Exception();
+
+                array = null;
+                List<Lept> buffer = new List<Lept>();
+                // SkipWhiteSpace(ref position);
+                JSON = JSON.Substring(1);
+                ParseWhiteSpace();
+                if (JSON[0] == ']')
+                {
+                    JSON = JSON.Substring(1);
+                    array = new Lept[0];
+                    return LeptParseResult.OK;
+                }
+
+                while (true)
+                {
+                    Lept value = new Lept(this);
+                    LeptParseResult parseResult;
+                    if ((parseResult = value.ParseValue()) != LeptParseResult.OK)
+                        return parseResult;
+                    buffer.Add(value);
+
+                    ParseWhiteSpace();
+                    switch (JSON[0])
+                    {
+                        case ',': JSON = JSON.Substring(1); ParseWhiteSpace(); continue;
+                        case ']':
+                            {
+                                JSON = JSON.Substring(1);
+                                array = buffer.ToArray();
+                                return LeptParseResult.OK;
+                            }
+                        default: return LeptParseResult.MissCommaOrSquareBracket;
+                    }
+                }
             }
 
             #endregion
