@@ -52,3 +52,5 @@ dotnet sln Leptjson.sln add ./Tutorial01/Source/Source.csproj ./Tutorial01/UnitT
 * [ ] Use my own specific Exception
 * [ ] Unit Test in Tutorial03 to Tutorial04_Answer can't run parallel
 * [ ] Dynamic type API
+* [ ] Use `Span<T>`
+* [ ] Use Travis CI
