@@ -49,5 +49,6 @@ dotnet sln Leptjson.sln add ./Tutorial01/Source/Source.csproj ./Tutorial01/UnitT
 
 ## TODO
 
-* [ ] Use my own specific Exception.
-* [ ] Unit Test in Tutorial03 to Tutorial04_Answer can't run parallel.
+* [ ] Use my own specific Exception
+* [ ] Unit Test in Tutorial03 to Tutorial04_Answer can't run parallel
+* [ ] Dynamic type API
