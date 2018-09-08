@@ -294,6 +294,63 @@ namespace LeptJSON
             }
 
             #endregion
+
+            #region ParsingObject
+
+            internal LeptParseResult ParseObject(out KeyValuePair<string, Lept>[] objects)
+            {
+                if (JSON[0] != '{')
+                    throw new Exception();
+
+                objects = null;
+                List<KeyValuePair<string, Lept>> buffer = new List<KeyValuePair<string, Lept>>();
+                // SkipWhiteSpace(ref position);
+                JSON = JSON.Substring(1);
+                ParseWhiteSpace();
+                if (JSON[0] == '}')
+                {
+                    JSON = JSON.Substring(1);
+                    objects = new KeyValuePair<string, Lept>[0];
+                    return LeptParseResult.OK;
+                }
+
+                while (true)
+                {
+                    Lept value = new Lept(this);
+
+                    LeptParseResult parseResult;
+                    // if ((parseResult = value.ParseValue()) != LeptParseResult.OK)
+                    //     return parseResult;
+                    // if (value.Type != LeptType.String)
+                    //     return LeptParseResult.MissKey;
+                    if ((parseResult = value.ParseValue()) != LeptParseResult.OK || value.Type != LeptType.String)
+                        return LeptParseResult.MissKey;
+                    string key = value.String;
+                    ParseWhiteSpace();
+                    if (JSON[0] != ':')
+                        return LeptParseResult.MissColon;
+                    JSON = JSON.Substring(1);
+                    ParseWhiteSpace();
+                    if ((parseResult = value.ParseValue()) != LeptParseResult.OK)
+                        return parseResult;
+                    buffer.Add(new KeyValuePair<string, Lept>(key, value));
+
+                    ParseWhiteSpace();
+                    switch (JSON[0])
+                    {
+                        case ',': JSON = JSON.Substring(1); ParseWhiteSpace(); continue;
+                        case '}':
+                            {
+                                JSON = JSON.Substring(1);
+                                objects = buffer.ToArray();
+                                return LeptParseResult.OK;
+                            }
+                        default: return LeptParseResult.MissCommaOrCurlyBracket;
+                    }
+                }
+            }
+
+            #endregion
         }
     }
 }

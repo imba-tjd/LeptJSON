@@ -41,6 +41,7 @@ namespace LeptJSON.UnitTest
             Assert.Equal(LeptParseResult.OK, parser.Parse("null"));
             Assert.Equal(LeptType.Null, parser.Type);
         }
+
         [Fact]
         void TestAccessNull()
         {
@@ -54,6 +55,7 @@ namespace LeptJSON.UnitTest
             Assert.Equal(LeptParseResult.OK, parser.Parse(json));
             Assert.Equal(expectedType, parser.Type);
         }
+
         [Fact]
         public void TestTrue() => TestBoolean("true", LeptType.True);
         [Fact]
@@ -65,6 +67,7 @@ namespace LeptJSON.UnitTest
             parser.Boolean = boolean;
             Assert.Equal(boolean ? LeptType.True : LeptType.False, parser.Type);
         }
+
         [Fact]
         public void TestAccessTrue() => TestAccessBoolean(true);
         [Fact]
@@ -81,6 +84,7 @@ namespace LeptJSON.UnitTest
             Assert.Equal(LeptType.Number, parser.Type);
             Assert.Equal(expected, parser.Number);
         }
+
         public static IEnumerable<object[]> TestNumberSource()
         {
             yield return new object[] { 0.0, "0" };
@@ -160,12 +164,15 @@ namespace LeptJSON.UnitTest
             Assert.Equal(LeptType.String, parser.Type);
             Assert.Equal(length, parser.String.Length);
         }
+
         [Theory]
         [InlineData("\""), InlineData("\"abc")]
         void TestMissingQuotationMark(string json) => TestError(json, LeptParseResult.MissQuotationMark);
+
         [Theory]
         [InlineData("\"\\v\""), InlineData("\"\\'\""), InlineData("\"\\0\""), InlineData("\"\\x12\"")]
         void TestInvalidStringEscape(string json) => TestError(json, LeptParseResult.InvalidStringEscape);
+
         [Theory]
         [InlineData("\"\x01\""), InlineData("\"\x1F\"")]
         void TestInvalidStringChar(string json) => TestError(json, LeptParseResult.InvalidStringChar);
@@ -200,6 +207,7 @@ namespace LeptJSON.UnitTest
             Assert.Equal("abc", parser.Array[4].String);
             Assert.Equal(3, parser.Array[4].String.Length);
         }
+
         [Fact]
         void TestArray2()
         {
@@ -208,14 +216,14 @@ namespace LeptJSON.UnitTest
             Assert.Equal(4, parser.Array.Length);
             for (int i = 0; i < 4; i++)
             {
-                Lept value1 = parser.Array[i];
-                Assert.Equal(LeptType.Array, value1.Type);
-                Assert.Equal(i, value1.Array.Length);
+                Lept element1 = parser.Array[i];
+                Assert.Equal(LeptType.Array, element1.Type);
+                Assert.Equal(i, element1.Array.Length);
                 for (int j = 0; j < i; j++)
                 {
-                    Lept value2 = value1.Array[j];
-                    Assert.Equal(LeptType.Number, value2.Type);
-                    Assert.Equal((double)j, value2.Number);
+                    Lept element2 = element1.Array[j];
+                    Assert.Equal(LeptType.Number, element2.Type);
+                    Assert.Equal((double)j, element2.Number);
                 }
             }
         }
@@ -223,5 +231,80 @@ namespace LeptJSON.UnitTest
         [Theory]
         [InlineData("[1"), InlineData("[1}"), InlineData("[1 2"), InlineData("[[]")]
         void TestMissCommaOrSquareBracket(string json) => TestError(json, LeptParseResult.MissCommaOrSquareBracket);
+    }
+    public class TestObjects : TestBase
+    {
+        [Fact]
+        void TestObject1()
+        {
+            Assert.Equal(LeptParseResult.OK, parser.Parse(" { } "));
+            Assert.Equal(LeptType.Object, parser.Type);
+            Assert.Empty(parser.Object);
+        }
+
+        [Fact]
+        void TestObject2()
+        {
+            Assert.Equal(LeptParseResult.OK, parser.Parse(
+                " { " +
+                "\"n\" : null , " +
+                "\"f\" : false , " +
+                "\"t\" : true , " +
+                "\"i\" : 123 , " +
+                "\"s\" : \"abc\", " +
+                "\"a\" : [ 1, 2, 3 ]," +
+                "\"o\" : { \"1\" : 1, \"2\" : 2, \"3\" : 3 }" +
+                " } "
+            ));
+            Assert.Equal(LeptType.Object, parser.Type);
+            Assert.Equal(7, parser.Object.Length);
+            Assert.Equal("n", parser.Object[0].Key);
+            Assert.Equal(LeptType.Null, parser.Object[0].Value.Type);
+            Assert.Equal("f", parser.Object[1].Key);
+            Assert.Equal(LeptType.False, parser.Object[1].Value.Type);
+            Assert.Equal("t", parser.Object[2].Key);
+            Assert.Equal(LeptType.True, parser.Object[2].Value.Type);
+            Assert.Equal("i", parser.Object[3].Key);
+            Assert.Equal(LeptType.Number, parser.Object[3].Value.Type);
+            Assert.Equal(123.0, parser.Object[3].Value.Number);
+            Assert.Equal("s", parser.Object[4].Key);
+            Assert.Equal(LeptType.String, parser.Object[4].Value.Type);
+            Assert.Equal("abc", parser.Object[4].Value.String);
+            Assert.Equal("a", parser.Object[5].Key);
+            Assert.Equal(LeptType.Array, parser.Object[5].Value.Type);
+            Assert.Equal(3, parser.Object[5].Value.Array.Length);
+            for (int i = 0; i < 3; i++)
+            {
+                Lept element = parser.Object[5].Value.Array[i];
+                Assert.Equal(LeptType.Number, element.Type);
+                Assert.Equal(i + 1.0, element.Number);
+            }
+            Assert.Equal("o", parser.Object[6].Key);
+            {
+                Lept element1 = parser.Object[6].Value;
+                Assert.Equal(LeptType.Object, element1.Type);
+                for (int i = 0; i < 3; i++)
+                {
+                    Lept element2 = element1.Object[i].Value;
+                    Assert.Equal('1' + i, element1.Object[i].Key[0]);
+                    Assert.Equal(1, element1.Object[i].Key.Length);
+                    Assert.Equal(LeptType.Number, element2.Type);
+                    Assert.Equal(i + 1.0, element2.Number);
+                }
+            }
+        }
+
+        [Theory]
+        [InlineData("{:1,"), InlineData("{1:1,"), InlineData("{true:1,"), InlineData("{false:1,")]
+        [InlineData("{null:1,"), InlineData("{[]:1,"), InlineData("{{}:1,"), InlineData("{\"a\":1,")]
+        void TestMissKey(string json) => TestError(json, LeptParseResult.MissKey);
+
+        [Theory]
+        [InlineData("{\"a\"}"), InlineData("{\"a\",\"b\"}")]
+        void TestMissColon(string json) => TestError(json, LeptParseResult.MissColon);
+
+        [Theory]
+        [InlineData("{\"a\":1"), InlineData("{\"a\":1]"), InlineData("{\"a\":1 \"b\""), InlineData("{\"a\":{}")]
+        void TestMissCommaOrCurlyBracket(string json) => TestError(json, LeptParseResult.MissCommaOrCurlyBracket);
     }
 }

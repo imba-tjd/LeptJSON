@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace LeptJSON
 {
@@ -24,18 +25,22 @@ namespace LeptJSON
         InvalidStringChar,
         InvalidUnicodeHex,
         InvalidUnicodeSurrogate,
-        MissCommaOrSquareBracket
+        MissCommaOrSquareBracket,
+        MissKey,
+        MissColon,
+        MissCommaOrCurlyBracket
     }
 
     public partial class Lept
     {
         class LeptValue
         {
-            internal LeptType type = LeptType.Null;
+            internal LeptType type;
             internal double number;
             internal string _string;
             internal bool boolean;
-            internal Lept[] array = new Lept[0];
+            internal Lept[] array;
+            internal KeyValuePair<string, Lept>[] _object;
         }
 
         LeptContext context;
@@ -106,6 +111,21 @@ namespace LeptJSON
                 _value.array = value;
             }
         }
+        public KeyValuePair<string, Lept>[] Object
+        {
+            get
+            {
+                if (_value.type != LeptType.Object)
+                    throw new Exception("LeptType isn't String.");
+                return _value._object;
+            }
+            set
+            {
+                _value = new LeptValue();
+                _value.type = LeptType.Object;
+                _value._object = value;
+            }
+        }
 
         #endregion
 
@@ -130,6 +150,7 @@ namespace LeptJSON
 
             return result;
         }
+
         internal LeptParseResult ParseValue()
         {
             switch (context[0])
@@ -139,10 +160,12 @@ namespace LeptJSON
                 case 'f': return ParseLiteral("false", LeptType.False);
                 case '\"': return ParseString();
                 case '[': return ParseArray();
+                case '{': return ParseObject();
                 case '\0': return LeptParseResult.ExpectValue;
                 default: return ParseNumber(); // include invalidValue
             }
         }
+
         LeptParseResult ParseLiteral(string literal, LeptType expectedType)
         {
             if (!context.ParseLiteral(literal))
@@ -151,6 +174,7 @@ namespace LeptJSON
             Type = expectedType;
             return LeptParseResult.OK;
         }
+
         LeptParseResult ParseNumber()
         {
             int validNumberEnd = context.GetValidNumberEnd(); // parse till invalid value
@@ -165,6 +189,7 @@ namespace LeptJSON
 
             return LeptParseResult.OK; // can still be root not singular in the end
         }
+
         LeptParseResult ParseString()
         {
             LeptParseResult parseResult = context.ParseString(out string result);
@@ -173,12 +198,24 @@ namespace LeptJSON
 
             return parseResult;
         }
+
         LeptParseResult ParseArray()
         {
             LeptParseResult parseResult = context.ParseArray(out Lept[] array);
 
             if (parseResult == LeptParseResult.OK)
                 Array = array;
+
+            // Type = LeptType.Array;
+            return parseResult;
+        }
+
+        LeptParseResult ParseObject()
+        {
+            LeptParseResult parseResult = context.ParseObject(out KeyValuePair<string, Lept>[] objects);
+
+            if (parseResult == LeptParseResult.OK)
+                Object = objects;
 
             // Type = LeptType.Array;
             return parseResult;
