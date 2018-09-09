@@ -21,21 +21,21 @@ namespace LeptJSON.UnitTest
         [Theory]
         [InlineData("null x"), InlineData("0123"), InlineData("0x0"), InlineData("0x123")]
         [InlineData("123 123"), InlineData("-"), InlineData("1E")]
-        public void TestRootNotSingular(string json) => TestError(json, LeptParseResult.RootNotSingular);
+        void TestRootNotSingular(string json) => TestError(json, LeptParseResult.RootNotSingular);
 
         [Theory]
         [InlineData("nul"), InlineData("?")]
-        public void TestInvalidValue(string json) => TestError(json, LeptParseResult.InvalidValue);
+        void TestInvalidValue(string json) => TestError(json, LeptParseResult.InvalidValue);
 
         [Theory]
         [InlineData(""), InlineData(" ")]
-        public void TestExpectValue(string json) => TestError(json, LeptParseResult.ExpectValue);
+        void TestExpectValue(string json) => TestError(json, LeptParseResult.ExpectValue);
     }
 
     public class TestLiteral : TestBase
     {
         [Fact]
-        public void TestNull()
+        void TestNull()
         {
             parser.Boolean = false;
             Assert.Equal(LeptParseResult.OK, parser.Parse("null"));
@@ -57,9 +57,9 @@ namespace LeptJSON.UnitTest
         }
 
         [Fact]
-        public void TestTrue() => TestBoolean("true", LeptType.True);
+        void TestTrue() => TestBoolean("true", LeptType.True);
         [Fact]
-        public void TestFalse() => TestBoolean("false", LeptType.False);
+        void TestFalse() => TestBoolean("false", LeptType.False);
 
         void TestAccessBoolean(bool boolean)
         {
@@ -69,23 +69,23 @@ namespace LeptJSON.UnitTest
         }
 
         [Fact]
-        public void TestAccessTrue() => TestAccessBoolean(true);
+        void TestAccessTrue() => TestAccessBoolean(true);
         [Fact]
-        public void TestAccessFalse() => TestAccessBoolean(false);
+        void TestAccessFalse() => TestAccessBoolean(false);
     }
 
     public class TestNumbers : TestBase
     {
         [Theory]
         [MemberData(nameof(TestNumberSource))]
-        public void TestNumber(double expected, string json)
+        void TestNumber(double expected, string json)
         {
             Assert.Equal(LeptParseResult.OK, parser.Parse(json));
             Assert.Equal(LeptType.Number, parser.Type);
             Assert.Equal(expected, parser.Number);
         }
 
-        public static IEnumerable<object[]> TestNumberSource()
+        public static IEnumerable<object[]> TestNumberSource() // MemberData must reference a public member
         {
             yield return new object[] { 0.0, "0" };
             yield return new object[] { 0.0, "-0" };
@@ -123,11 +123,11 @@ namespace LeptJSON.UnitTest
         [Theory]
         [InlineData("+0"), InlineData("+1"), InlineData(".123")]
         [InlineData("1."), InlineData("INF"), InlineData("inf"), InlineData("NAN"), InlineData("nan")]
-        public void TestInvalidNumber(string invalidNumber) => TestError(invalidNumber, LeptParseResult.InvalidValue);
+        void TestInvalidNumber(string invalidNumber) => TestError(invalidNumber, LeptParseResult.InvalidValue);
 
         [Theory]
         [InlineData("1e309"), InlineData("-1e309")]
-        public void TestNumberTooBig(string bigNumber) => TestError(bigNumber, LeptParseResult.NumberTooBig);
+        void TestNumberTooBig(string bigNumber) => TestError(bigNumber, LeptParseResult.NumberTooBig);
     }
 
     public class TestStrings : TestBase
@@ -157,7 +157,7 @@ namespace LeptJSON.UnitTest
 
         [Theory]
         [InlineData("", 0), InlineData("Hello", 5)]
-        public void TestAccessString(string json, int length)
+        void TestAccessString(string json, int length)
         {
             parser.String = json;
             Assert.Equal(json, parser.String);
@@ -232,6 +232,7 @@ namespace LeptJSON.UnitTest
         [InlineData("[1"), InlineData("[1}"), InlineData("[1 2"), InlineData("[[]")]
         void TestMissCommaOrSquareBracket(string json) => TestError(json, LeptParseResult.MissCommaOrSquareBracket);
     }
+
     public class TestObjects : TestBase
     {
         [Fact]
@@ -313,6 +314,43 @@ namespace LeptJSON.UnitTest
             TestError("{\":1}", LeptParseResult.MissQuotationMark);
             TestError("{\"\\v\":1}", LeptParseResult.InvalidStringEscape);
             TestError("{\"\x01\":1}", LeptParseResult.InvalidStringChar);
+        }
+
+        public class TestStringify : TestBase
+        {
+            void TestRoundTrip(string json)
+            {
+                Assert.Equal(LeptParseResult.OK, parser.Parse(json));
+                Assert.Equal(json, parser.Stringify());
+            }
+
+            [Theory]
+            [InlineData("null"), InlineData("true"), InlineData("false")]
+            void TestStringifyLiteral(string json) => TestRoundTrip(json);
+
+            [Theory]
+            [InlineData("0"), InlineData("1"), InlineData("-1"), InlineData("1.5"), InlineData("-1.5"),]
+            [InlineData("3.25"), InlineData("1e+20"), InlineData("1.234e+20"), InlineData("1.234e-20")]
+            [InlineData("1.0000000000000002"), InlineData("4.9406564584124654e-324"), InlineData("-4.9406564584124654e-324")]
+            [InlineData("2.2250738585072009e-308"), InlineData("-2.2250738585072009e-308"), InlineData("2.2250738585072014e-308")]
+            [InlineData("-2.2250738585072014e-308"), InlineData("1.7976931348623157e+308"), InlineData("-1.7976931348623157e+308")]
+            // [InlineData("-0")]
+            void TestStringifyNumber(string json) => TestRoundTrip(json);
+
+            [Theory]
+            [InlineData("\"\""), InlineData("\"Hello\""), InlineData("\"Hello\\nWorld\"")]
+            [InlineData("\"\\\" \\\\ / \\b \\f \\n \\r \\t\""), InlineData("\"Hello\\u0000World\"")]
+            void TestStringifyString(string json) => TestRoundTrip(json);
+
+            [Theory]
+            [InlineData("[]"), InlineData("[null,false,true,123,\"abc\",[1,2,3]]")]
+            void TestStringifyArray(string json) => TestRoundTrip(json);
+
+            [Theory]
+            [InlineData("{}")]
+            [InlineData("{\"n\":null,\"f\":false,\"t\":true,\"i\":123,\"s\":\"abc\",\"a\":[1,2,3],\"o\":{\"1\":1,\"2\":2,\"3\":3}}")]
+            void TestStringifyObject(string json) => TestRoundTrip(json);
+
         }
     }
 }

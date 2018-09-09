@@ -1,4 +1,5 @@
 using System;
+using System.Text;
 using System.Collections.Generic;
 
 namespace LeptJSON
@@ -131,6 +132,8 @@ namespace LeptJSON
 
         #region Parsing
 
+        public System.Threading.Tasks.Task<LeptParseResult> ParseAsync(string json) =>
+            System.Threading.Tasks.Task.Run(() => Parse(json));
         public LeptParseResult Parse(string json)
         {
             context = new LeptContext(json);
@@ -219,6 +222,90 @@ namespace LeptJSON
 
             // Type = LeptType.Array;
             return parseResult;
+        }
+
+        #endregion
+
+        #region Stringify
+
+        public string Stringify()
+        {
+            StringBuilder sb = new StringBuilder();
+            StringifyValue(sb);
+            return sb.ToString();
+        }
+
+        void StringifyValue(StringBuilder sb)
+        {
+            switch (Type)
+            {
+                case LeptType.Null: sb.Append("null"); break;
+                case LeptType.False: sb.Append("false"); break;
+                case LeptType.True: sb.Append("true"); break;
+                case LeptType.Number: sb.Append(Number.ToString("g17")); break;
+                case LeptType.String: StringifyString(sb); break;
+                case LeptType.Array:
+                    {
+                        sb.Append('[');
+                        if (Array.Length > 0)
+                            Array[0].StringifyValue(sb);
+                        for (int i = 1; i < Array.Length; i++)
+                        {
+                            sb.Append(',');
+                            Array[i].StringifyValue(sb);
+                        }
+                        sb.Append(']');
+                        break;
+                    }
+                case LeptType.Object:
+                    {
+                        sb.Append('{');
+                        if (Object.Length > 0)
+                        {
+                            sb.Append('\"' + Object[0].Key + '\"');
+                            sb.Append(':');
+                            Object[0].Value.StringifyValue(sb);
+                        }
+                        for (int i = 1; i < Object.Length; i++)
+                        {
+                            sb.Append(',');
+                            sb.Append('\"' + Object[i].Key + '\"');
+                            sb.Append(':');
+                            Object[i].Value.StringifyValue(sb);
+                        }
+                        sb.Append('}');
+                        break;
+                    }
+            }
+        }
+
+        void StringifyString(StringBuilder sb)
+        {
+            sb.Append('\"');
+            for (int i = 0; i < String.Length; i++)
+            {
+                char ch = String[i];
+                switch (ch)
+                {
+                    case '\"': sb.Append("\\\""); break;
+                    case '\\': sb.Append("\\\\"); break;
+                    // case '/': sb.Append("\\/"); break;
+                    case '\b': sb.Append("\\b"); break;
+                    case '\f': sb.Append("\\f"); break;
+                    case '\n': sb.Append("\\n"); break;
+                    case '\r': sb.Append("\\r"); break;
+                    case '\t': sb.Append("\\t"); break;
+                    default:
+                        {
+                            if (ch < 0x20)
+                                sb.Append("\\u" + ((int)ch).ToString("x4"));
+                            else
+                                sb.Append(ch);
+                            break;
+                        }
+                }
+            }
+            sb.Append('\"');
         }
 
         #endregion
