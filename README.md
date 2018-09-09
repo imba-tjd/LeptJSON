@@ -22,7 +22,7 @@ This is a remake version of [Milo Yip's json-tutorial](https://github.com/miloyi
 
 ```batch
 #dotnet restore
-dotnet test # [bug]This will test Source.
+dotnet test --filter "DisplayName~UnitTest"
 ```
 
 ## Process of Establishing Folders
@@ -54,3 +54,4 @@ dotnet sln Leptjson.sln add ./Tutorial01/Source/Source.csproj ./Tutorial01/UnitT
 * [ ] Dynamic type API
 * [ ] Use `Span<T>`
 * [ ] Use Travis CI
+* [ ] [only exist low surrogate]https://github.com/miloyip/json-tutorial/issues/62
