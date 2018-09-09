@@ -319,23 +319,23 @@ namespace LeptJSON
                     Lept value = new Lept(this);
 
                     LeptParseResult parseResult;
-                    // if ((parseResult = value.ParseValue()) != LeptParseResult.OK)
-                    //     return parseResult;
-                    // if (value.Type != LeptType.String)
-                    //     return LeptParseResult.MissKey;
-                    if ((parseResult = value.ParseValue()) != LeptParseResult.OK || value.Type != LeptType.String)
+                    if (JSON[0] != '\"')
                         return LeptParseResult.MissKey;
+                    if ((parseResult = value.ParseValue()) != LeptParseResult.OK)
+                        return parseResult;
                     string key = value.String;
                     ParseWhiteSpace();
+
                     if (JSON[0] != ':')
                         return LeptParseResult.MissColon;
                     JSON = JSON.Substring(1);
                     ParseWhiteSpace();
+
                     if ((parseResult = value.ParseValue()) != LeptParseResult.OK)
                         return parseResult;
                     buffer.Add(new KeyValuePair<string, Lept>(key, value));
-
                     ParseWhiteSpace();
+
                     switch (JSON[0])
                     {
                         case ',': JSON = JSON.Substring(1); ParseWhiteSpace(); continue;

@@ -306,5 +306,13 @@ namespace LeptJSON.UnitTest
         [Theory]
         [InlineData("{\"a\":1"), InlineData("{\"a\":1]"), InlineData("{\"a\":1 \"b\""), InlineData("{\"a\":{}")]
         void TestMissCommaOrCurlyBracket(string json) => TestError(json, LeptParseResult.MissCommaOrCurlyBracket);
+
+        [Fact]
+        void TestKeyStringError()
+        {
+            TestError("{\":1}", LeptParseResult.MissQuotationMark);
+            TestError("{\"\\v\":1}", LeptParseResult.InvalidStringEscape);
+            TestError("{\"\x01\":1}", LeptParseResult.InvalidStringChar);
+        }
     }
 }
