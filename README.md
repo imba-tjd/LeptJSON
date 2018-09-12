@@ -2,7 +2,7 @@
 
 [![GitHub license](https://img.shields.io/github/license/imba-tjd/LeptJSON.svg)](https://github.com/imba-tjd/LeptJSON/blob/master/LICENSE)
 
-This is a remake version of [Milo Yip's json-tutorial](https://github.com/miloyip/json-tutorial), written in C#, unit tested by [xUnit](https://xunit.github.io/). If you want to know my commit history following the totorial, see [Totorial](../../Totorial) branch.
+This is a remake version of [Milo Yip's json-tutorial](https://github.com/miloyip/json-tutorial), written in C#, unit tested by [xUnit](https://xunit.github.io/). If you want to know my commit history following the tutorial, see [Tutorial](../../tree/Tutorial) branch.
 
 ## Features
 
