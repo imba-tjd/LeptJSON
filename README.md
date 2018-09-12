@@ -46,12 +46,3 @@ dotnet sln Leptjson.sln add ./Tutorial01/Source/Source.csproj ./Tutorial01/UnitT
     dotnet sln Leptjson.sln add ./Tutorial0$_/Source/Source.csproj ./Tutorial0$_/UnitTest/UnitTest.csproj;
 };
 ```
-
-## TODO
-
-* [ ] Use my own specific Exception
-* [ ] Unit Test in Tutorial03 to Tutorial04_Answer can't run parallel
-* [ ] Dynamic type API
-* [ ] Use `Span<T>`
-* [ ] Use Travis CI
-* [ ] [only exist low surrogate]https://github.com/miloyip/json-tutorial/issues/62
