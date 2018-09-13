@@ -1,7 +1,7 @@
 language: csharp
 solution: LeptJSON.sln
 mono: none
-dotnet: 2.1.401
+dotnet: 2.1
 
 script:
  - dotnet build
