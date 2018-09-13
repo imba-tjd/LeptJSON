@@ -1,6 +1,6 @@
 # Leptjson
 
-[![GitHub license](https://img.shields.io/github/license/imba-tjd/LeptJSON.svg)](https://github.com/imba-tjd/LeptJSON/blob/master/LICENSE)
+[![GitHub license](https://img.shields.io/github/license/imba-tjd/LeptJSON.svg)](https://github.com/imba-tjd/LeptJSON/blob/master/LICENSE) [![Travis CI](https://api.travis-ci.com/imba-tjd/LeptJSON.svg?branch=master)](https://travis-ci.com/imba-tjd/LeptJSON)
 
 This is a remake version of [Milo Yip's json-tutorial](https://github.com/miloyip/json-tutorial), written in C#, unit tested by [xUnit](https://xunit.github.io/). If you want to know my commit history following the tutorial, see [Tutorial](../../tree/Tutorial) branch.
 
