@@ -4,5 +4,5 @@ mono: none
 dotnet: 2.1
 
 script:
- - dotnet build
- - cd ./UnitTest && dotnet test
+  - dotnet build
+  - cd ./UnitTest && dotnet test
