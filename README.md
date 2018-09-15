@@ -22,7 +22,7 @@ This is a remake version of [Milo Yip's json-tutorial](https://github.com/miloyi
 
 ```batch
 #dotnet restore
-
+dotnet build
 ```
 
 ## Test
@@ -38,5 +38,5 @@ cd ./UnitTest && dotnet test
 * [ ] Unit Test in Tutorial03 to Tutorial04_Answer can't run parallel
 * [ ] Dynamic type API
 * [ ] Use `Span<T>`
-* [ ] Use Travis CI
+* [x] Use Travis CI
 * [ ] [only exist low surrogate](https://github.com/miloyip/json-tutorial/issues/62)
