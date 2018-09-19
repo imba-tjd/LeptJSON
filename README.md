@@ -20,15 +20,20 @@ This is a remake version of [Milo Yip's json-tutorial](https://github.com/miloyi
 
 ## Build
 
-```batch
+```console
 #dotnet restore
 dotnet build
 ```
 
 ## Test
 
-```batch
-#dotnet build
+```console
+cd ./UnitTest
+dotnet add package Microsoft.NET.Test.Sdk # update nuget packages
+dotnet add package xunit
+dotnet add package xunit.runner.visualstudio
+cd ..
+dotnet build
 cd ./UnitTest && dotnet test
 ```
 
