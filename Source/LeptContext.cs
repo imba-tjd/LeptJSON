@@ -69,7 +69,7 @@ namespace LeptJSON
                     if (JSON[position] == '+' || JSON[position] == '-') // jump across optional positive and negative sign
                         position++;
 
-                    if (!PositionIsDigit(position)) // invalid caracter or have natural logarithmic symbol symbol but no digit
+                    if (!PositionIsDigit(position)) // invalid character or have natural logarithmic symbol symbol but no digit
                     {
                         if (JSON[position - 1] == '+' || JSON[position - 1] == '-') // look back
                             return position - 2; // root not singular.
